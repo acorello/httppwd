@@ -14,7 +14,8 @@ func main() {
 		log.Fatal("Failed to get current working directory:", err)
 	}
 	directory := flag.String("dir", pwd, "directory to serve; defaults to $PWD")
-	port := flag.Int("port", 8080, "TCP port to listen on; defaults to 8080")
+	const defaultPort = 8080
+	port := flag.Int("port", defaultPort, fmt.Sprintf("TCP port to listen on; defaults to %d", defaultPort))
 	flag.Parse()
 
 	rootDir := validRootDir(*directory)
@@ -24,7 +25,9 @@ func main() {
 
 	address := fmt.Sprintf(":%d", *port)
 	log.Println("Listening on", address)
-	log.Fatal(http.ListenAndServe(address, nil))
+	if err := http.ListenAndServe(address, nil); err != nil {
+		log.Fatal(err)
+	}
 	// TODO: verify that symlinks are not served unless explicitly allowed with CLI option
 }
 
@@ -50,6 +53,5 @@ func validRootDir(directory string) http.Dir {
 	if !info.IsDir() {
 		log.Fatalf("%s is not a directory\n", directory)
 	}
-	rootDir := http.Dir(directory)
-	return rootDir
+	return http.Dir(directory)
 }
